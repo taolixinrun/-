@@ -1,766 +1,1174 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>旅行地球仪 · 足迹档案</title>
-  <!-- Font Awesome 图标库 -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-  <style>
-    /* 全局重置 & 字体 */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      overflow: hidden;
-      font-family: 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif;
-      background: #070b12;
-      color: #e8edf5;
-    }
-    /* 加载提示 */
-    #loading {
-      position: fixed;
-      inset: 0;
-      background: #070b12;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 999;
-      transition: opacity 0.8s ease;
-      pointer-events: none;
-    }
-    #loading.hidden {
-      opacity: 0;
-    }
-    #loading i {
-      font-size: 3.6rem;
-      color: #4fc3f7;
-      animation: spin 1.6s linear infinite;
-      margin-bottom: 20px;
-    }
-    #loading p {
-      font-size: 1.2rem;
-      letter-spacing: 4px;
-      color: #8aa3c9;
-    }
-    @keyframes spin { 100% { transform: rotate(360deg); } }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>旅行地球仪 · 足迹档案</title>
+    <!-- Font Awesome 图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        /* ----- 全局重置 ----- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            overflow: hidden;
+            font-family: 'Segoe UI', 'PingFang SC', Roboto, 'Helvetica Neue', sans-serif;
+            background: #070b12;
+            color: #e8edf5;
+        }
 
-    /* 顶部信息栏 */
-    #header {
-      position: absolute;
-      top: 18px;
-      left: 24px;
-      z-index: 20;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      background: rgba(7, 11, 18, 0.65);
-      backdrop-filter: blur(10px);
-      padding: 10px 24px 10px 20px;
-      border-radius: 60px;
-      border: 1px solid rgba(79, 195, 247, 0.15);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.7);
-      pointer-events: none;
-    }
-    #header h1 {
-      font-size: 1.5rem;
-      font-weight: 400;
-      letter-spacing: 1px;
-      margin: 0;
-    }
-    #header h1 i { color: #4fc3f7; margin-right: 10px; }
-    #header .badge {
-      font-size: 0.75rem;
-      opacity: 0.6;
-      background: #1a2637;
-      padding: 2px 12px;
-      border-radius: 40px;
-      border: 1px solid #2a3a50;
-    }
+        /* ----- 加载遮罩 ----- */
+        #loading {
+            position: fixed;
+            inset: 0;
+            background: #070b12;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            transition: opacity 0.8s ease;
+            pointer-events: none;
+        }
+        #loading.hidden {
+            opacity: 0;
+        }
+        #loading i {
+            font-size: 3.6rem;
+            color: #4fc3f7;
+            animation: spin 1.6s linear infinite;
+            margin-bottom: 20px;
+        }
+        #loading p {
+            font-size: 1.2rem;
+            letter-spacing: 4px;
+            color: #8aa3c9;
+        }
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
 
-    /* 模式指示器 */
-    #modeIndicator {
-      position: absolute;
-      top: 20px;
-      right: 24px;
-      z-index: 20;
-      background: rgba(7, 11, 18, 0.6);
-      backdrop-filter: blur(8px);
-      padding: 8px 20px;
-      border-radius: 40px;
-      border: 1px solid rgba(255,255,255,0.06);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 0.85rem;
-      pointer-events: none;
-    }
-    .mode-dot {
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      display: inline-block;
-      box-shadow: 0 0 16px currentColor;
-    }
-    .mode-dot.travel { background: #81c784; color: #81c784; }
-    .mode-dot.work { background: #ffb74d; color: #ffb74d; }
+        /* ----- 顶部信息栏 ----- */
+        #header {
+            position: absolute;
+            top: 18px;
+            left: 24px;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: rgba(7, 11, 18, 0.65);
+            backdrop-filter: blur(10px);
+            padding: 10px 24px 10px 20px;
+            border-radius: 60px;
+            border: 1px solid rgba(79, 195, 247, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
+            pointer-events: none;
+        }
+        #header h1 {
+            font-size: 1.5rem;
+            font-weight: 400;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+        #header h1 i {
+            color: #4fc3f7;
+            margin-right: 10px;
+        }
+        #header .badge {
+            font-size: 0.75rem;
+            opacity: 0.6;
+            background: #1a2637;
+            padding: 2px 12px;
+            border-radius: 40px;
+            border: 1px solid #2a3a50;
+        }
 
-    /* 统计小标签 */
-    #stats {
-      position: absolute;
-      bottom: 100px;
-      right: 24px;
-      z-index: 10;
-      background: rgba(7, 11, 18, 0.5);
-      backdrop-filter: blur(6px);
-      padding: 10px 16px;
-      border-radius: 16px;
-      font-size: 0.7rem;
-      line-height: 1.8;
-      border: 1px solid rgba(255,255,255,0.04);
-      text-align: right;
-      pointer-events: none;
-    }
-    #stats span { font-weight: 600; color: #b0d4ff; }
+        /* ----- 模式指示器 ----- */
+        #modeIndicator {
+            position: absolute;
+            top: 20px;
+            right: 24px;
+            z-index: 20;
+            background: rgba(7, 11, 18, 0.6);
+            backdrop-filter: blur(8px);
+            padding: 8px 20px;
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.85rem;
+            pointer-events: none;
+        }
+        .mode-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 16px currentColor;
+        }
+        .mode-dot.travel {
+            background: #81c784;
+            color: #81c784;
+        }
+        .mode-dot.work {
+            background: #ffb74d;
+            color: #ffb74d;
+        }
 
-    /* 底部控制栏 */
-    #controls {
-      position: absolute;
-      bottom: 28px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 30;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: center;
-      gap: 12px 20px;
-      background: rgba(7, 11, 18, 0.7);
-      backdrop-filter: blur(14px);
-      padding: 12px 28px;
-      border-radius: 60px;
-      border: 1px solid rgba(255,255,255,0.06);
-      box-shadow: 0 8px 40px rgba(0,0,0,0.8);
-      pointer-events: auto;
-    }
-    .ctrl-group {
-      display: flex;
-      align-items: center;
-      gap: 6px 12px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-    .ctrl-btn {
-      background: rgba(30, 45, 70, 0.4);
-      border: 1px solid rgba(255,255,255,0.08);
-      color: #c8d6ed;
-      padding: 6px 16px;
-      border-radius: 40px;
-      font-size: 0.8rem;
-      cursor: pointer;
-      transition: 0.25s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      letter-spacing: 0.4px;
-      backdrop-filter: blur(4px);
-    }
-    .ctrl-btn i { font-size: 0.9rem; }
-    .ctrl-btn:hover {
-      background: #4fc3f7;
-      color: #070b12;
-      border-color: #4fc3f7;
-      transform: scale(1.02);
-      box-shadow: 0 0 24px rgba(79, 195, 247, 0.25);
-    }
-    .ctrl-btn.active {
-      background: #4fc3f7;
-      color: #070b12;
-      border-color: #4fc3f7;
-      font-weight: 500;
-    }
-    .year-badge {
-      background: #1a2637;
-      padding: 4px 16px;
-      border-radius: 40px;
-      font-size: 0.85rem;
-      border: 1px solid #2e4058;
-      color: #b8ceec;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-    #yearDisplay {
-      font-weight: 600;
-      color: #fff;
-      min-width: 44px;
-      text-align: center;
-    }
+        /* ----- 统计小标签 ----- */
+        #stats {
+            position: absolute;
+            bottom: 100px;
+            right: 24px;
+            z-index: 10;
+            background: rgba(7, 11, 18, 0.5);
+            backdrop-filter: blur(6px);
+            padding: 10px 16px;
+            border-radius: 16px;
+            font-size: 0.7rem;
+            line-height: 1.8;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            text-align: right;
+            pointer-events: none;
+        }
+        #stats span {
+            font-weight: 600;
+            color: #b0d4ff;
+        }
 
-    /* 数据管理入口 —— 浮窗按钮 */
-    #dataEntry {
-      position: absolute;
-      bottom: 110px;
-      left: 24px;
-      z-index: 25;
-      background: rgba(7, 11, 18, 0.7);
-      backdrop-filter: blur(10px);
-      padding: 10px 18px 10px 16px;
-      border-radius: 40px;
-      border: 1px solid rgba(79, 195, 247, 0.2);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
-      transition: 0.3s;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-      pointer-events: auto;
-    }
-    #dataEntry:hover {
-      background: #1a2a40;
-      border-color: #4fc3f7;
-      transform: scale(1.02);
-    }
-    #dataEntry i {
-      font-size: 1.2rem;
-      color: #4fc3f7;
-    }
-    #dataEntry span {
-      font-size: 0.8rem;
-      letter-spacing: 0.5px;
-    }
+        /* ----- 底部控制栏 ----- */
+        #controls {
+            position: absolute;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 30;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 12px 20px;
+            background: rgba(7, 11, 18, 0.7);
+            backdrop-filter: blur(14px);
+            padding: 12px 28px;
+            border-radius: 60px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.8);
+            pointer-events: auto;
+        }
+        .ctrl-group {
+            display: flex;
+            align-items: center;
+            gap: 6px 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .ctrl-btn {
+            background: rgba(30, 45, 70, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #c8d6ed;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            letter-spacing: 0.4px;
+            backdrop-filter: blur(4px);
+        }
+        .ctrl-btn i {
+            font-size: 0.9rem;
+        }
+        .ctrl-btn:hover {
+            background: #4fc3f7;
+            color: #070b12;
+            border-color: #4fc3f7;
+            transform: scale(1.02);
+            box-shadow: 0 0 24px rgba(79, 195, 247, 0.25);
+        }
+        .ctrl-btn.active {
+            background: #4fc3f7;
+            color: #070b12;
+            border-color: #4fc3f7;
+            font-weight: 500;
+        }
+        .year-badge {
+            background: #1a2637;
+            padding: 4px 16px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            border: 1px solid #2e4058;
+            color: #b8ceec;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        #yearDisplay {
+            font-weight: 600;
+            color: #fff;
+            min-width: 44px;
+            text-align: center;
+        }
 
-    /* 响应式 */
-    @media (max-width: 768px) {
-      #header { top: 12px; left: 12px; padding: 6px 14px; }
-      #header h1 { font-size: 1.1rem; }
-      #header .badge { display: none; }
-      #modeIndicator { top: 12px; right: 12px; padding: 4px 12px; font-size: 0.7rem; gap: 6px; }
-      #controls { flex-direction: column; gap: 8px; width: 92%; padding: 10px 14px; border-radius: 30px; bottom: 16px; }
-      .ctrl-group { gap: 4px 8px; }
-      #stats { bottom: 140px; right: 12px; font-size: 0.6rem; padding: 6px 12px; }
-      #dataEntry { bottom: 130px; left: 12px; padding: 6px 14px; }
-      #dataEntry span { display: none; }
-    }
-  </style>
+        /* ----- 数据管理侧边栏 (新增) ----- */
+        #dataPanel {
+            position: absolute;
+            top: 0;
+            right: -420px;
+            width: 400px;
+            height: 100vh;
+            background: rgba(10, 16, 26, 0.92);
+            backdrop-filter: blur(18px);
+            border-left: 1px solid rgba(79, 195, 247, 0.2);
+            box-shadow: -8px 0 40px rgba(0, 0, 0, 0.7);
+            z-index: 50;
+            transition: right 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            padding: 24px 20px 20px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            color: #d0ddea;
+        }
+        #dataPanel.open {
+            right: 0;
+        }
+        #dataPanel h2 {
+            font-size: 1.3rem;
+            font-weight: 400;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #f0f4fa;
+        }
+        #dataPanel h2 i {
+            color: #4fc3f7;
+        }
+        #dataPanel .close-btn {
+            margin-left: auto;
+            background: none;
+            border: none;
+            color: #8aa3c9;
+            font-size: 1.6rem;
+            cursor: pointer;
+            transition: 0.2s;
+            padding: 0 6px;
+        }
+        #dataPanel .close-btn:hover {
+            color: #fff;
+            transform: rotate(90deg);
+        }
+        #dataPanel .sub {
+            font-size: 0.8rem;
+            opacity: 0.6;
+            margin-bottom: 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 12px;
+        }
+
+        /* 表单 */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px 14px;
+            margin-bottom: 16px;
+            background: rgba(0, 0, 0, 0.25);
+            padding: 16px 14px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .form-grid .full {
+            grid-column: 1 / -1;
+        }
+        .form-grid label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.6;
+            display: block;
+            margin-bottom: 2px;
+        }
+        .form-grid input,
+        .form-grid select {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 6px 10px;
+            border-radius: 10px;
+            color: #e8edf5;
+            font-size: 0.85rem;
+            transition: 0.2s;
+        }
+        .form-grid input:focus,
+        .form-grid select:focus {
+            outline: none;
+            border-color: #4fc3f7;
+            box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.15);
+        }
+        .form-grid input::placeholder {
+            color: #5a6f8a;
+        }
+        .form-grid select option {
+            background: #1a2637;
+        }
+
+        .btn-primary {
+            background: #4fc3f7;
+            border: none;
+            color: #070b12;
+            padding: 10px 0;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.25s;
+            width: 100%;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-primary:hover {
+            background: #6dd0ff;
+            transform: scale(1.01);
+            box-shadow: 0 0 30px rgba(79, 195, 247, 0.25);
+        }
+        .btn-danger {
+            background: #b03a4a;
+            border: none;
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-danger:hover {
+            background: #d14a5a;
+        }
+
+        /* 足迹列表 */
+        #tripList {
+            flex: 1;
+            overflow-y: auto;
+            margin-top: 8px;
+            padding-right: 4px;
+        }
+        #tripList::-webkit-scrollbar {
+            width: 4px;
+        }
+        #tripList::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        #tripList::-webkit-scrollbar-thumb {
+            background: #2a3a50;
+            border-radius: 10px;
+        }
+
+        .trip-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 14px;
+            padding: 12px 14px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: 0.2s;
+        }
+        .trip-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(79, 195, 247, 0.15);
+        }
+        .trip-item .info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .trip-item .info .city {
+            font-weight: 500;
+            font-size: 0.95rem;
+            color: #f0f4fa;
+        }
+        .trip-item .info .detail {
+            font-size: 0.7rem;
+            opacity: 0.6;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .trip-item .info .detail span {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .trip-item .badge-mode {
+            font-size: 0.6rem;
+            padding: 2px 10px;
+            border-radius: 30px;
+            background: rgba(129, 199, 132, 0.2);
+            color: #81c784;
+            border: 1px solid rgba(129, 199, 132, 0.2);
+        }
+        .trip-item .badge-mode.work {
+            background: rgba(255, 183, 77, 0.2);
+            color: #ffb74d;
+            border-color: rgba(255, 183, 77, 0.2);
+        }
+        .trip-item .actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .empty-msg {
+            text-align: center;
+            opacity: 0.4;
+            padding: 40px 0;
+            font-size: 0.9rem;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            #dataPanel {
+                width: 100%;
+                right: -100%;
+                padding: 16px 14px;
+            }
+            #header {
+                top: 12px;
+                left: 12px;
+                padding: 6px 14px;
+            }
+            #header h1 {
+                font-size: 1.1rem;
+            }
+            #header .badge {
+                display: none;
+            }
+            #modeIndicator {
+                top: 12px;
+                right: 12px;
+                padding: 4px 12px;
+                font-size: 0.7rem;
+                gap: 6px;
+            }
+            #controls {
+                flex-direction: column;
+                gap: 8px;
+                width: 92%;
+                padding: 10px 14px;
+                border-radius: 30px;
+                bottom: 16px;
+            }
+            .ctrl-group {
+                gap: 4px 8px;
+            }
+            #stats {
+                bottom: 140px;
+                right: 12px;
+                font-size: 0.6rem;
+                padding: 6px 12px;
+            }
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+        }
+
+        /* 打开侧栏的触发按钮 */
+        #openPanelBtn {
+            position: absolute;
+            bottom: 110px;
+            left: 24px;
+            z-index: 25;
+            background: rgba(7, 11, 18, 0.7);
+            backdrop-filter: blur(10px);
+            padding: 10px 18px;
+            border-radius: 40px;
+            border: 1px solid rgba(79, 195, 247, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            pointer-events: auto;
+            color: #e8edf5;
+        }
+        #openPanelBtn:hover {
+            background: #1a2a40;
+            border-color: #4fc3f7;
+            transform: scale(1.02);
+        }
+        #openPanelBtn i {
+            font-size: 1.2rem;
+            color: #4fc3f7;
+        }
+        #openPanelBtn span {
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+        }
+        @media (max-width: 768px) {
+            #openPanelBtn {
+                bottom: 130px;
+                left: 12px;
+                padding: 6px 14px;
+            }
+            #openPanelBtn span {
+                display: none;
+            }
+        }
+    </style>
 </head>
 <body>
 
-  <!-- 加载遮罩 -->
-  <div id="loading">
-    <i class="fas fa-globe-asia"></i>
-    <p>加载星球纹理 ...</p>
-  </div>
-
-  <!-- 顶部 -->
-  <div id="header">
-    <h1><i class="fas fa-globe-asia"></i> 足迹地球</h1>
-    <span class="badge"><i class="far fa-clock"></i> 实时 3D</span>
-  </div>
-
-  <!-- 模式指示 -->
-  <div id="modeIndicator">
-    <span class="mode-dot travel" id="modeDot"></span>
-    <span id="modeLabel">旅行模式</span>
-  </div>
-
-  <!-- 统计 -->
-  <div id="stats">
-    <div>🌍 总足迹 <span id="totalCount">0</span></div>
-    <div>📌 当前显示 <span id="shownCount">0</span></div>
-  </div>
-
-  <!-- 数据管理入口 -->
-  <div id="dataEntry" title="点击打开数据管理面板 (控制台输入 addTrip() 可添加示例数据)">
-    <i class="fas fa-pen-fancy"></i>
-    <span>管理足迹</span>
-  </div>
-
-  <!-- 底部控制栏 -->
-  <div id="controls">
-    <div class="ctrl-group">
-      <button class="ctrl-btn active" id="modeToggle"><i class="fas fa-briefcase"></i> 工作/旅行</button>
-      <button class="ctrl-btn" id="resetView"><i class="fas fa-home"></i> 复位</button>
+    <!-- 加载遮罩 -->
+    <div id="loading">
+        <i class="fas fa-globe-asia"></i>
+        <p>加载星球纹理 ...</p>
     </div>
-    <div class="ctrl-group">
-      <button class="ctrl-btn" id="prevYear"><i class="fas fa-chevron-left"></i></button>
-      <span class="year-badge"><i class="far fa-calendar-alt"></i> <span id="yearDisplay">全部</span></span>
-      <button class="ctrl-btn" id="nextYear"><i class="fas fa-chevron-right"></i></button>
-      <button class="ctrl-btn" id="drawerToggle"><i class="fas fa-archive"></i> 抽屉</button>
+
+    <!-- 顶部 -->
+    <div id="header">
+        <h1><i class="fas fa-globe-asia"></i> 足迹地球</h1>
+        <span class="badge"><i class="far fa-clock"></i> 实时 3D</span>
     </div>
-  </div>
 
-  <!-- ========== Three.js ========== -->
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
-      }
-    }
-  </script>
+    <!-- 模式指示 -->
+    <div id="modeIndicator">
+        <span class="mode-dot travel" id="modeDot"></span>
+        <span id="modeLabel">旅行模式</span>
+    </div>
 
-  <script type="module">
-    // ----- 导入 -----
-    import * as THREE from 'three';
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-    import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+    <!-- 统计 -->
+    <div id="stats">
+        <div>🌍 总足迹 <span id="totalCount">0</span></div>
+        <div>📌 当前显示 <span id="shownCount">0</span></div>
+    </div>
 
-    // ----- 初始数据 (包含旅行 & 出差) -----
-    // 用户可通过控制台调用 addTrip() 添加自定义数据
-    const defaultTrips = [
-      { id: 1, city: '巴黎', country: '法国', lat: 48.8566, lng: 2.3522, year: 2023, month: 5, mode: 'travel', transport: '飞机', note: '埃菲尔铁塔, 卢浮宫' },
-      { id: 2, city: '东京', country: '日本', lat: 35.6895, lng: 139.6917, year: 2024, month: 3, mode: 'travel', transport: '飞机', note: '樱花季, 涩谷' },
-      { id: 3, city: '纽约', country: '美国', lat: 40.7128, lng: -74.0060, year: 2023, month: 9, mode: 'work', transport: '飞机', note: '商务会议, 曼哈顿' },
-      { id: 4, city: '伦敦', country: '英国', lat: 51.5074, lng: -0.1278, year: 2022, month: 7, mode: 'travel', transport: '高铁', note: '大本钟, 伦敦眼' },
-      { id: 5, city: '悉尼', country: '澳大利亚', lat: -33.8688, lng: 151.2093, year: 2024, month: 1, mode: 'travel', transport: '飞机', note: '歌剧院, 海滩' },
-      { id: 6, city: '上海', country: '中国', lat: 31.2304, lng: 121.4737, year: 2023, month: 11, mode: 'work', transport: '高铁', note: '进博会, 外滩' },
-      { id: 7, city: '开普敦', country: '南非', lat: -33.9249, lng: 18.4241, year: 2025, month: 2, mode: 'travel', transport: '飞机', note: '桌山, 好望角' },
-      { id: 8, city: '莫斯科', country: '俄罗斯', lat: 55.7558, lng: 37.6173, year: 2022, month: 12, mode: 'work', transport: '飞机', note: '红场, 克里姆林宫' },
-      { id: 9, city: '新加坡', country: '新加坡', lat: 1.3521, lng: 103.8198, year: 2023, month: 8, mode: 'travel', transport: '飞机', note: '鱼尾狮, 滨海湾' },
-      { id: 10, city: '罗马', country: '意大利', lat: 41.9028, lng: 12.4964, year: 2024, month: 6, mode: 'travel', transport: '高铁', note: '斗兽场, 梵蒂冈' },
-    ];
+    <!-- 打开侧栏按钮 -->
+    <div id="openPanelBtn">
+        <i class="fas fa-pen-fancy"></i>
+        <span>管理足迹</span>
+    </div>
 
-    // 旅途连线 (同一旅途不同城市)
-    const defaultTripGroups = [
-      { ids: [1, 4], transport: '高铁' },
-      { ids: [2, 9], transport: '飞机' },
-      { ids: [3, 6], transport: '飞机' },
-    ];
+    <!-- ===== 数据管理侧边栏 ===== -->
+    <div id="dataPanel">
+        <h2>
+            <i class="fas fa-list-ul"></i> 足迹管理
+            <button class="close-btn" id="closePanelBtn">&times;</button>
+        </h2>
+        <div class="sub"><i class="far fa-compass"></i> 添加或删除你的旅行 / 出差记录</div>
 
-    // ---------- 全局状态 ----------
-    let trips = JSON.parse(JSON.stringify(defaultTrips));
-    let tripGroups = JSON.parse(JSON.stringify(defaultTripGroups));
-    let currentYear = null;          // null 表示全部
-    let currentMode = 'travel';      // 'travel' | 'work'
-    let drawerOpen = false;
+        <!-- 添加表单 -->
+        <div class="form-grid">
+            <div>
+                <label>城市 *</label>
+                <input type="text" id="fCity" placeholder="例: 北京" />
+            </div>
+            <div>
+                <label>国家</label>
+                <input type="text" id="fCountry" placeholder="例: 中国" />
+            </div>
+            <div>
+                <label>纬度 *</label>
+                <input type="number" id="fLat" placeholder="39.9" step="any" />
+            </div>
+            <div>
+                <label>经度 *</label>
+                <input type="number" id="fLng" placeholder="116.4" step="any" />
+            </div>
+            <div>
+                <label>年份 *</label>
+                <input type="number" id="fYear" placeholder="2025" />
+            </div>
+            <div>
+                <label>月份</label>
+                <input type="number" id="fMonth" placeholder="6" min="1" max="12" />
+            </div>
+            <div>
+                <label>模式</label>
+                <select id="fMode">
+                    <option value="travel">旅行</option>
+                    <option value="work">出差</option>
+                </select>
+            </div>
+            <div>
+                <label>交通</label>
+                <input type="text" id="fTransport" placeholder="飞机 / 高铁" />
+            </div>
+            <div class="full">
+                <label>备注</label>
+                <input type="text" id="fNote" placeholder="埃菲尔铁塔, 卢浮宫" />
+            </div>
+        </div>
+        <button class="btn-primary" id="addTripBtn"><i class="fas fa-plus"></i> 添加足迹</button>
 
-    // ---------- 场景初始化 ----------
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x070b12);
+        <!-- 足迹列表 -->
+        <div style="margin-top: 16px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size:0.8rem; opacity:0.6;"><i class="far fa-clock"></i> 我的足迹</span>
+            <span id="listCount" style="font-size:0.7rem; opacity:0.4;">0 条</span>
+        </div>
+        <div id="tripList">
+            <!-- 动态渲染 -->
+            <div class="empty-msg"><i class="far fa-smile"></i> 还没有足迹，添加一条吧</div>
+        </div>
+    </div>
 
-    const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 1.2, 7.5);
+    <!-- 底部控制栏 -->
+    <div id="controls">
+        <div class="ctrl-group">
+            <button class="ctrl-btn active" id="modeToggle"><i class="fas fa-briefcase"></i> 工作/旅行</button>
+            <button class="ctrl-btn" id="resetView"><i class="fas fa-home"></i> 复位</button>
+        </div>
+        <div class="ctrl-group">
+            <button class="ctrl-btn" id="prevYear"><i class="fas fa-chevron-left"></i></button>
+            <span class="year-badge"><i class="far fa-calendar-alt"></i> <span id="yearDisplay">全部</span></span>
+            <button class="ctrl-btn" id="nextYear"><i class="fas fa-chevron-right"></i></button>
+            <button class="ctrl-btn" id="drawerToggle"><i class="fas fa-archive"></i> 抽屉</button>
+        </div>
+    </div>
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    document.body.appendChild(renderer.domElement);
-
-    const labelRenderer = new CSS2DRenderer();
-    labelRenderer.setSize(window.innerWidth, window.innerHeight);
-    labelRenderer.domElement.style.position = 'absolute';
-    labelRenderer.domElement.style.top = '0';
-    labelRenderer.domElement.style.left = '0';
-    labelRenderer.domElement.style.pointerEvents = 'none';
-    document.body.appendChild(labelRenderer.domElement);
-
-    // 控制器
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.07;
-    controls.rotateSpeed = 0.7;
-    controls.autoRotate = false;
-    controls.minDistance = 2.8;
-    controls.maxDistance = 16;
-    controls.target.set(0, 0, 0);
-
-    // ---------- 灯光 ----------
-    const ambient = new THREE.AmbientLight(0x404070, 0.5);
-    scene.add(ambient);
-    const mainLight = new THREE.DirectionalLight(0xffeedd, 1.0);
-    mainLight.position.set(4, 7, 6);
-    mainLight.castShadow = true;
-    scene.add(mainLight);
-    const backLight = new THREE.DirectionalLight(0x4488ff, 0.5);
-    backLight.position.set(-5, -1, -8);
-    scene.add(backLight);
-    const fillLight = new THREE.DirectionalLight(0x88bbff, 0.4);
-    fillLight.position.set(0, -4, 6);
-    scene.add(fillLight);
-
-    // 星星背景 (更丰富)
-    const starsGeo = new THREE.BufferGeometry();
-    const starsCount = 5000;
-    const starsPos = new Float32Array(starsCount * 3);
-    const starColors = new Float32Array(starsCount * 3);
-    for (let i = 0; i < starsCount; i++) {
-      const r = 70 + Math.random() * 50;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos((Math.random() * 2) - 1);
-      starsPos[i*3] = r * Math.sin(phi) * Math.cos(theta);
-      starsPos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
-      starsPos[i*3+2] = r * Math.cos(phi);
-      const c = 0.6 + Math.random() * 0.4;
-      starColors[i*3] = c * (0.8 + 0.2 * Math.random());
-      starColors[i*3+1] = c * (0.8 + 0.2 * Math.random());
-      starColors[i*3+2] = c;
-    }
-    starsGeo.setAttribute('position', new THREE.BufferAttribute(starsPos, 3));
-    starsGeo.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
-    const starsMat = new THREE.PointsMaterial({ size: 0.18, vertexColors: true, transparent: true, opacity: 0.9 });
-    const stars = new THREE.Points(starsGeo, starsMat);
-    scene.add(stars);
-
-    // ---------- 地球 ----------
-    const earthGroup = new THREE.Group();
-    scene.add(earthGroup);
-    const EARTH_RADIUS = 1.8;
-
-    const earthGeo = new THREE.SphereGeometry(EARTH_RADIUS, 72, 72);
-    const textureLoader = new THREE.TextureLoader();
-    // 使用高质纹理 (来自 threejs 官方)
-    const earthMap = textureLoader.load('https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg');
-    const earthMat = new THREE.MeshStandardMaterial({
-      map: earthMap,
-      roughness: 0.25,
-      metalness: 0.05,
-      emissive: new THREE.Color(0x0a1a2a),
-      emissiveIntensity: 0.15
-    });
-    const earth = new THREE.Mesh(earthGeo, earthMat);
-    earth.castShadow = true;
-    earth.receiveShadow = true;
-    earthGroup.add(earth);
-
-    // 大气辉光
-    const glowGeo = new THREE.SphereGeometry(EARTH_RADIUS * 1.018, 64, 64);
-    const glowMat = new THREE.MeshPhongMaterial({
-      color: 0x4fc3f7,
-      transparent: true,
-      opacity: 0.10,
-      side: THREE.BackSide
-    });
-    const glow = new THREE.Mesh(glowGeo, glowMat);
-    earthGroup.add(glow);
-
-    // 云层 (动态)
-    const cloudGeo = new THREE.SphereGeometry(EARTH_RADIUS * 1.006, 64, 64);
-    const cloudMap = textureLoader.load('https://threejs.org/examples/textures/planets/earth_clouds_1024.png');
-    const cloudMat = new THREE.MeshPhongMaterial({
-      map: cloudMap,
-      transparent: true,
-      opacity: 0.18,
-      blending: THREE.AdditiveBlending,
-      side: THREE.DoubleSide
-    });
-    const clouds = new THREE.Mesh(cloudGeo, cloudMat);
-    earthGroup.add(clouds);
-
-    // ---------- 标记系统 ----------
-    const markerGroup = new THREE.Group();
-    earthGroup.add(markerGroup);
-
-    // 工具: 经纬度 → 坐标
-    function latLngToPosition(lat, lng, radius = EARTH_RADIUS * 1.02) {
-      const phi = (90 - lat) * Math.PI / 180;
-      const theta = lng * Math.PI / 180;
-      return new THREE.Vector3(
-        radius * Math.sin(phi) * Math.cos(theta),
-        radius * Math.cos(phi),
-        radius * Math.sin(phi) * Math.sin(theta)
-      );
-    }
-
-    // 创建单个标记 (返回 group)
-    function createMarker(data) {
-      const pos = latLngToPosition(data.lat, data.lng);
-      const color = data.mode === 'work' ? '#ffb74d' : '#81c784';
-      const group = new THREE.Group();
-      group.position.copy(pos);
-      group.userData = { ...data, visible: true };
-
-      // 核心球
-      const sphereGeo = new THREE.SphereGeometry(0.065, 14, 14);
-      const sphereMat = new THREE.MeshStandardMaterial({
-        color: color,
-        emissive: color,
-        emissiveIntensity: 0.5,
-        roughness: 0.2,
-        metalness: 0.1
-      });
-      const sphere = new THREE.Mesh(sphereGeo, sphereMat);
-      sphere.castShadow = true;
-      group.add(sphere);
-
-      // 光晕环
-      const ringGeo = new THREE.RingGeometry(0.09, 0.14, 28);
-      const ringMat = new THREE.MeshBasicMaterial({
-        color: color,
-        transparent: true,
-        opacity: 0.45,
-        side: THREE.DoubleSide
-      });
-      const ring = new THREE.Mesh(ringGeo, ringMat);
-      ring.lookAt(new THREE.Vector3(0,0,0));
-      group.add(ring);
-
-      // 细柱
-      const pillarGeo = new THREE.CylinderGeometry(0.005, 0.025, 0.22);
-      const pillarMat = new THREE.MeshBasicMaterial({
-        color: color,
-        transparent: true,
-        opacity: 0.25
-      });
-      const pillar = new THREE.Mesh(pillarGeo, pillarMat);
-      pillar.position.set(0, 0.12, 0);
-      group.add(pillar);
-
-      // CSS2D 标签
-      const div = document.createElement('div');
-      div.textContent = `${data.city} ${data.year}`;
-      div.style.color = '#f0f4fa';
-      div.style.fontSize = '12px';
-      div.style.fontWeight = '400';
-      div.style.textShadow = '0 0 16px rgba(0,0,0,0.95), 0 0 6px #000';
-      div.style.background = 'rgba(7, 11, 18, 0.7)';
-      div.style.padding = '2px 12px';
-      div.style.borderRadius = '40px';
-      div.style.border = `1px solid ${color}`;
-      div.style.backdropFilter = 'blur(6px)';
-      div.style.pointerEvents = 'auto';
-      div.style.cursor = 'pointer';
-      div.style.fontSize = '11px';
-      div.style.letterSpacing = '0.3px';
-      div.dataset.id = data.id;
-      div.addEventListener('click', (e) => {
-        e.stopPropagation();
-        alert(`📍 ${data.city}, ${data.country}\n📅 ${data.year}.${data.month}\n🚗 ${data.transport}\n📝 ${data.note || '无备注'}\n🏷️ ${data.mode === 'work' ? '出差' : '旅行'}`);
-      });
-      const label = new CSS2DObject(div);
-      label.position.set(0, 0.28, 0);
-      group.add(label);
-
-      return group;
-    }
-
-    // 创建弧线 (旅途连线)
-    function createArc(data1, data2, transport) {
-      const p1 = latLngToPosition(data1.lat, data1.lng, EARTH_RADIUS * 1.02);
-      const p2 = latLngToPosition(data2.lat, data2.lng, EARTH_RADIUS * 1.02);
-      const mid = new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5);
-      const dist = p1.distanceTo(p2);
-      mid.normalize().multiplyScalar(EARTH_RADIUS * 1.12 + dist * 0.3);
-      const curve = new THREE.QuadraticBezierCurve3(p1, mid, p2);
-      const points = curve.getPoints(36);
-      const geo = new THREE.BufferGeometry().setFromPoints(points);
-      const color = transport === '飞机' ? '#4fc3f7' : (transport === '高铁' ? '#ffb74d' : '#a8d8ea');
-      const mat = new THREE.LineBasicMaterial({
-        color: color,
-        transparent: true,
-        opacity: 0.3
-      });
-      const line = new THREE.Line(geo, mat);
-      line.userData = { type: 'arc' };
-      return line;
-    }
-
-    // ---------- 渲染标记 ----------
-    function renderAllMarkers() {
-      // 清除旧标记 (保留地球等)
-      while(markerGroup.children.length) markerGroup.remove(markerGroup.children[0]);
-
-      // 1. 添加标记
-      trips.forEach(d => {
-        const marker = createMarker(d);
-        markerGroup.add(marker);
-      });
-
-      // 2. 添加旅途连线
-      tripGroups.forEach(g => {
-        const d1 = trips.find(t => t.id === g.ids[0]);
-        const d2 = trips.find(t => t.id === g.ids[1]);
-        if (d1 && d2) {
-          const arc = createArc(d1, d2, g.transport);
-          markerGroup.add(arc);
+    <!-- ========== Three.js ========== -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
+            }
         }
-      });
+    </script>
 
-      // 应用当前筛选
-      applyFilters();
-      updateStats();
-    }
+    <script type="module">
+        // ----- 导入 -----
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 
-    // ---------- 筛选逻辑 ----------
-    function applyFilters() {
-      let visibleCount = 0;
-      markerGroup.children.forEach(child => {
-        // 标记
-        if (child.userData && child.userData.year !== undefined) {
-          const yearMatch = (currentYear === null || child.userData.year === currentYear);
-          const modeMatch = (child.userData.mode === currentMode);
-          const show = yearMatch && modeMatch;
-          child.visible = show;
-          if (show) visibleCount++;
-        } else {
-          // 弧线: 默认显示 (后期可优化为根据关联标记)
-          child.visible = true;
+        // ----- 初始数据 (旅行 & 出差) -----
+        let trips = [
+            { id: 1, city: '巴黎', country: '法国', lat: 48.8566, lng: 2.3522, year: 2023, month: 5, mode: 'travel',
+                transport: '飞机', note: '埃菲尔铁塔, 卢浮宫' },
+            { id: 2, city: '东京', country: '日本', lat: 35.6895, lng: 139.6917, year: 2024, month: 3, mode: 'travel',
+                transport: '飞机', note: '樱花季, 涩谷' },
+            { id: 3, city: '纽约', country: '美国', lat: 40.7128, lng: -74.0060, year: 2023, month: 9, mode: 'work',
+                transport: '飞机', note: '商务会议, 曼哈顿' },
+            { id: 4, city: '伦敦', country: '英国', lat: 51.5074, lng: -0.1278, year: 2022, month: 7, mode: 'travel',
+                transport: '高铁', note: '大本钟, 伦敦眼' },
+            { id: 5, city: '悉尼', country: '澳大利亚', lat: -33.8688, lng: 151.2093, year: 2024, month: 1, mode: 'travel',
+                transport: '飞机', note: '歌剧院, 海滩' },
+            { id: 6, city: '上海', country: '中国', lat: 31.2304, lng: 121.4737, year: 2023, month: 11, mode: 'work',
+                transport: '高铁', note: '进博会, 外滩' },
+            { id: 7, city: '开普敦', country: '南非', lat: -33.9249, lng: 18.4241, year: 2025, month: 2, mode: 'travel',
+                transport: '飞机', note: '桌山, 好望角' },
+            { id: 8, city: '莫斯科', country: '俄罗斯', lat: 55.7558, lng: 37.6173, year: 2022, month: 12, mode: 'work',
+                transport: '飞机', note: '红场, 克里姆林宫' },
+            { id: 9, city: '新加坡', country: '新加坡', lat: 1.3521, lng: 103.8198, year: 2023, month: 8, mode: 'travel',
+                transport: '飞机', note: '鱼尾狮, 滨海湾' },
+            { id: 10, city: '罗马', country: '意大利', lat: 41.9028, lng: 12.4964, year: 2024, month: 6, mode: 'travel',
+                transport: '高铁', note: '斗兽场, 梵蒂冈' },
+        ];
+
+        let tripGroups = [
+            { ids: [1, 4], transport: '高铁' },
+            { ids: [2, 9], transport: '飞机' },
+            { ids: [3, 6], transport: '飞机' },
+        ];
+
+        // ---------- 全局状态 ----------
+        let currentYear = null;
+        let currentMode = 'travel';
+        let drawerOpen = false;
+
+        // ---------- 场景初始化 ----------
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x070b12);
+
+        const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 1.2, 7.5);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        document.body.appendChild(renderer.domElement);
+
+        const labelRenderer = new CSS2DRenderer();
+        labelRenderer.setSize(window.innerWidth, window.innerHeight);
+        labelRenderer.domElement.style.position = 'absolute';
+        labelRenderer.domElement.style.top = '0';
+        labelRenderer.domElement.style.left = '0';
+        labelRenderer.domElement.style.pointerEvents = 'none';
+        document.body.appendChild(labelRenderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.07;
+        controls.rotateSpeed = 0.7;
+        controls.autoRotate = false;
+        controls.minDistance = 2.8;
+        controls.maxDistance = 16;
+        controls.target.set(0, 0, 0);
+
+        // ---------- 灯光 ----------
+        const ambient = new THREE.AmbientLight(0x404070, 0.5);
+        scene.add(ambient);
+        const mainLight = new THREE.DirectionalLight(0xffeedd, 1.0);
+        mainLight.position.set(4, 7, 6);
+        mainLight.castShadow = true;
+        scene.add(mainLight);
+        const backLight = new THREE.DirectionalLight(0x4488ff, 0.5);
+        backLight.position.set(-5, -1, -8);
+        scene.add(backLight);
+        const fillLight = new THREE.DirectionalLight(0x88bbff, 0.4);
+        fillLight.position.set(0, -4, 6);
+        scene.add(fillLight);
+
+        // 星星
+        const starsGeo = new THREE.BufferGeometry();
+        const starsCount = 5000;
+        const starsPos = new Float32Array(starsCount * 3);
+        const starColors = new Float32Array(starsCount * 3);
+        for (let i = 0; i < starsCount; i++) {
+            const r = 70 + Math.random() * 50;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos((Math.random() * 2) - 1);
+            starsPos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+            starsPos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+            starsPos[i * 3 + 2] = r * Math.cos(phi);
+            const c = 0.6 + Math.random() * 0.4;
+            starColors[i * 3] = c * (0.8 + 0.2 * Math.random());
+            starColors[i * 3 + 1] = c * (0.8 + 0.2 * Math.random());
+            starColors[i * 3 + 2] = c;
         }
-      });
-      document.getElementById('shownCount').textContent = visibleCount;
-    }
+        starsGeo.setAttribute('position', new THREE.BufferAttribute(starsPos, 3));
+        starsGeo.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
+        const starsMat = new THREE.PointsMaterial({ size: 0.18, vertexColors: true, transparent: true, opacity: 0.9 });
+        const stars = new THREE.Points(starsGeo, starsMat);
+        scene.add(stars);
 
-    function updateStats() {
-      document.getElementById('totalCount').textContent = trips.length;
-      let shown = 0;
-      markerGroup.children.forEach(c => {
-        if (c.visible && c.userData && c.userData.year !== undefined) shown++;
-      });
-      document.getElementById('shownCount').textContent = shown;
-    }
+        // ---------- 地球 ----------
+        const earthGroup = new THREE.Group();
+        scene.add(earthGroup);
+        const EARTH_RADIUS = 1.8;
 
-    // 年份筛选
-    function filterByYear(year) {
-      currentYear = year;
-      document.getElementById('yearDisplay').textContent = year ? year : '全部';
-      applyFilters();
-    }
+        const earthGeo = new THREE.SphereGeometry(EARTH_RADIUS, 72, 72);
+        const textureLoader = new THREE.TextureLoader();
+        const earthMap = textureLoader.load('https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg');
+        const earthMat = new THREE.MeshStandardMaterial({
+            map: earthMap,
+            roughness: 0.25,
+            metalness: 0.05,
+            emissive: new THREE.Color(0x0a1a2a),
+            emissiveIntensity: 0.15
+        });
+        const earth = new THREE.Mesh(earthGeo, earthMat);
+        earth.castShadow = true;
+        earth.receiveShadow = true;
+        earthGroup.add(earth);
 
-    // 模式切换
-    function toggleMode() {
-      currentMode = (currentMode === 'travel' ? 'work' : 'travel');
-      document.getElementById('modeLabel').textContent = currentMode === 'travel' ? '旅行模式' : '工作模式';
-      document.getElementById('modeDot').className = 'mode-dot ' + (currentMode === 'travel' ? 'travel' : 'work');
-      applyFilters();
-    }
+        const glowGeo = new THREE.SphereGeometry(EARTH_RADIUS * 1.018, 64, 64);
+        const glowMat = new THREE.MeshPhongMaterial({
+            color: 0x4fc3f7,
+            transparent: true,
+            opacity: 0.10,
+            side: THREE.BackSide
+        });
+        const glow = new THREE.Mesh(glowGeo, glowMat);
+        earthGroup.add(glow);
 
-    // ---------- 数据管理 (对外暴露) ----------
-    // 用户可通过控制台调用: addTrip({ city: '北京', country: '中国', lat: 39.9, lng: 116.4, year: 2025, month: 7, mode: 'travel', transport: '高铁', note: '故宫' })
-    window.addTrip = function(data) {
-      if (!data.city || !data.lat || !data.lng || !data.year) {
-        console.error('缺少必要字段: city, lat, lng, year');
-        return;
-      }
-      const newId = trips.length ? Math.max(...trips.map(t => t.id)) + 1 : 1;
-      const newTrip = {
-        id: newId,
-        city: data.city,
-        country: data.country || '未知',
-        lat: data.lat,
-        lng: data.lng,
-        year: data.year,
-        month: data.month || 1,
-        mode: data.mode || 'travel',
-        transport: data.transport || '其他',
-        note: data.note || ''
-      };
-      trips.push(newTrip);
-      renderAllMarkers();
-      // 如果抽屉打开，保持筛选
-      if (drawerOpen && currentYear === null) {
-        const years = [...new Set(trips.map(d => d.year))].sort();
-        currentYear = years[years.length-1] || null;
-        filterByYear(currentYear);
-      } else {
-        filterByYear(currentYear);
-      }
-      console.log(`✅ 已添加: ${newTrip.city}, 当前共 ${trips.length} 条足迹`);
-    };
+        const cloudGeo = new THREE.SphereGeometry(EARTH_RADIUS * 1.006, 64, 64);
+        const cloudMap = textureLoader.load('https://threejs.org/examples/textures/planets/earth_clouds_1024.png');
+        const cloudMat = new THREE.MeshPhongMaterial({
+            map: cloudMap,
+            transparent: true,
+            opacity: 0.18,
+            blending: THREE.AdditiveBlending,
+            side: THREE.DoubleSide
+        });
+        const clouds = new THREE.Mesh(cloudGeo, cloudMat);
+        earthGroup.add(clouds);
 
-    // 也暴露 trips 数组供查看
-    window.trips = trips;
-    window.tripGroups = tripGroups;
+        // ---------- 标记系统 ----------
+        const markerGroup = new THREE.Group();
+        earthGroup.add(markerGroup);
 
-    // 添加示例数据 (方便测试)
-    window.addSampleTrip = function() {
-      const samples = [
-        { city: '曼谷', country: '泰国', lat: 13.7563, lng: 100.5018, year: 2025, month: 4, mode: 'travel', transport: '飞机', note: '大皇宫, 夜市' },
-        { city: '柏林', country: '德国', lat: 52.5200, lng: 13.4050, year: 2023, month: 10, mode: 'work', transport: '飞机', note: 'IT峰会' },
-      ];
-      samples.forEach(s => window.addTrip(s));
-    };
-
-    // ---------- 初始化 ----------
-    renderAllMarkers();
-    filterByYear(null);
-
-    // ---------- 控件事件绑定 ----------
-    document.getElementById('modeToggle').addEventListener('click', toggleMode);
-    document.getElementById('resetView').addEventListener('click', () => {
-      camera.position.set(0, 1.2, 7.5);
-      controls.target.set(0, 0, 0);
-      controls.update();
-    });
-
-    document.getElementById('prevYear').addEventListener('click', () => {
-      const years = [...new Set(trips.map(d => d.year))].sort();
-      if (currentYear === null) {
-        currentYear = years[0] || null;
-      } else {
-        const idx = years.indexOf(currentYear);
-        if (idx > 0) currentYear = years[idx-1];
-        else currentYear = null;
-      }
-      filterByYear(currentYear);
-    });
-
-    document.getElementById('nextYear').addEventListener('click', () => {
-      const years = [...new Set(trips.map(d => d.year))].sort();
-      if (currentYear === null) {
-        currentYear = years[years.length-1] || null;
-      } else {
-        const idx = years.indexOf(currentYear);
-        if (idx < years.length-1) currentYear = years[idx+1];
-        else currentYear = null;
-      }
-      filterByYear(currentYear);
-    });
-
-    document.getElementById('drawerToggle').addEventListener('click', () => {
-      drawerOpen = !drawerOpen;
-      document.body.classList.toggle('drawer-open');
-      if (drawerOpen) {
-        if (currentYear === null) {
-          const years = [...new Set(trips.map(d => d.year))].sort();
-          currentYear = years[years.length-1] || null;
+        function latLngToPosition(lat, lng, radius = EARTH_RADIUS * 1.02) {
+            const phi = (90 - lat) * Math.PI / 180;
+            const theta = lng * Math.PI / 180;
+            return new THREE.Vector3(
+                radius * Math.sin(phi) * Math.cos(theta),
+                radius * Math.cos(phi),
+                radius * Math.sin(phi) * Math.sin(theta)
+            );
         }
-        filterByYear(currentYear);
-      } else {
-        currentYear = null;
+
+        function createMarker(data) {
+            const pos = latLngToPosition(data.lat, data.lng);
+            const color = data.mode === 'work' ? '#ffb74d' : '#81c784';
+            const group = new THREE.Group();
+            group.position.copy(pos);
+            group.userData = { ...data, visible: true };
+
+            const sphereGeo = new THREE.SphereGeometry(0.065, 14, 14);
+            const sphereMat = new THREE.MeshStandardMaterial({
+                color: color,
+                emissive: color,
+                emissiveIntensity: 0.5,
+                roughness: 0.2,
+                metalness: 0.1
+            });
+            const sphere = new THREE.Mesh(sphereGeo, sphereMat);
+            sphere.castShadow = true;
+            group.add(sphere);
+
+            const ringGeo = new THREE.RingGeometry(0.09, 0.14, 28);
+            const ringMat = new THREE.MeshBasicMaterial({
+                color: color,
+                transparent: true,
+                opacity: 0.45,
+                side: THREE.DoubleSide
+            });
+            const ring = new THREE.Mesh(ringGeo, ringMat);
+            ring.lookAt(new THREE.Vector3(0, 0, 0));
+            group.add(ring);
+
+            const pillarGeo = new THREE.CylinderGeometry(0.005, 0.025, 0.22);
+            const pillarMat = new THREE.MeshBasicMaterial({
+                color: color,
+                transparent: true,
+                opacity: 0.25
+            });
+            const pillar = new THREE.Mesh(pillarGeo, pillarMat);
+            pillar.position.set(0, 0.12, 0);
+            group.add(pillar);
+
+            const div = document.createElement('div');
+            div.textContent = `${data.city} ${data.year}`;
+            div.style.color = '#f0f4fa';
+            div.style.fontSize = '12px';
+            div.style.fontWeight = '400';
+            div.style.textShadow = '0 0 16px rgba(0,0,0,0.95), 0 0 6px #000';
+            div.style.background = 'rgba(7, 11, 18, 0.7)';
+            div.style.padding = '2px 12px';
+            div.style.borderRadius = '40px';
+            div.style.border = `1px solid ${color}`;
+            div.style.backdropFilter = 'blur(6px)';
+            div.style.pointerEvents = 'auto';
+            div.style.cursor = 'pointer';
+            div.style.fontSize = '11px';
+            div.style.letterSpacing = '0.3px';
+            div.dataset.id = data.id;
+            div.addEventListener('click', (e) => {
+                e.stopPropagation();
+                alert(
+                    `📍 ${data.city}, ${data.country}\n📅 ${data.year}.${data.month}\n🚗 ${data.transport}\n📝 ${data.note || '无备注'}\n🏷️ ${data.mode === 'work' ? '出差' : '旅行'}`
+                    );
+            });
+            const label = new CSS2DObject(div);
+            label.position.set(0, 0.28, 0);
+            group.add(label);
+
+            return group;
+        }
+
+        function createArc(data1, data2, transport) {
+            const p1 = latLngToPosition(data1.lat, data1.lng, EARTH_RADIUS * 1.02);
+            const p2 = latLngToPosition(data2.lat, data2.lng, EARTH_RADIUS * 1.02);
+            const mid = new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5);
+            const dist = p1.distanceTo(p2);
+            mid.normalize().multiplyScalar(EARTH_RADIUS * 1.12 + dist * 0.3);
+            const curve = new THREE.QuadraticBezierCurve3(p1, mid, p2);
+            const points = curve.getPoints(36);
+            const geo = new THREE.BufferGeometry().setFromPoints(points);
+            const color = transport === '飞机' ? '#4fc3f7' : (transport === '高铁' ? '#ffb74d' : '#a8d8ea');
+            const mat = new THREE.LineBasicMaterial({
+                color: color,
+                transparent: true,
+                opacity: 0.3
+            });
+            const line = new THREE.Line(geo, mat);
+            line.userData = { type: 'arc' };
+            return line;
+        }
+
+        // ---------- 渲染标记 ----------
+        function renderAllMarkers() {
+            while (markerGroup.children.length) markerGroup.remove(markerGroup.children[0]);
+
+            trips.forEach(d => {
+                const marker = createMarker(d);
+                markerGroup.add(marker);
+            });
+
+            tripGroups.forEach(g => {
+                const d1 = trips.find(t => t.id === g.ids[0]);
+                const d2 = trips.find(t => t.id === g.ids[1]);
+                if (d1 && d2) {
+                    const arc = createArc(d1, d2, g.transport);
+                    markerGroup.add(arc);
+                }
+            });
+
+            applyFilters();
+            updateStats();
+            renderTripList();
+        }
+
+        // ---------- 筛选 ----------
+        function applyFilters() {
+            let visibleCount = 0;
+            markerGroup.children.forEach(child => {
+                if (child.userData && child.userData.year !== undefined) {
+                    const yearMatch = (currentYear === null || child.userData.year === currentYear);
+                    const modeMatch = (child.userData.mode === currentMode);
+                    const show = yearMatch && modeMatch;
+                    child.visible = show;
+                    if (show) visibleCount++;
+                } else {
+                    child.visible = true;
+                }
+            });
+            document.getElementById('shownCount').textContent = visibleCount;
+        }
+
+        function updateStats() {
+            document.getElementById('totalCount').textContent = trips.length;
+            let shown = 0;
+            markerGroup.children.forEach(c => {
+                if (c.visible && c.userData && c.userData.year !== undefined) shown++;
+            });
+            document.getElementById('shownCount').textContent = shown;
+        }
+
+        function filterByYear(year) {
+            currentYear = year;
+            document.getElementById('yearDisplay').textContent = year ? year : '全部';
+            applyFilters();
+        }
+
+        function toggleMode() {
+            currentMode = (currentMode === 'travel' ? 'work' : 'travel');
+            document.getElementById('modeLabel').textContent = currentMode === 'travel' ? '旅行模式' : '工作模式';
+            document.getElementById('modeDot').className = 'mode-dot ' + (currentMode === 'travel' ? 'travel' : 'work');
+            applyFilters();
+        }
+
+        // ---------- 侧栏 UI 渲染 ----------
+        function renderTripList() {
+            const container = document.getElementById('tripList');
+            if (trips.length === 0) {
+                container.innerHTML = `<div class="empty-msg"><i class="far fa-smile"></i> 还没有足迹，添加一条吧</div>`;
+                document.getElementById('listCount').textContent = '0 条';
+                return;
+            }
+            let html = '';
+            // 按年份降序排列
+            const sorted = [...trips].sort((a, b) => b.year - a.year || a.id - b.id);
+            sorted.forEach(t => {
+                const modeLabel = t.mode === 'work' ? '出差' : '旅行';
+                const modeCls = t.mode === 'work' ? 'work' : '';
+                html += `
+                    <div class="trip-item" data-id="${t.id}">
+                        <div class="info">
+                            <div class="city">${t.city} <span style="opacity:0.5;font-weight:300;">${t.country || ''}</span></div>
+                            <div class="detail">
+                                <span><i class="far fa-calendar-alt"></i> ${t.year}.${String(t.month).padStart(2,'0')}</span>
+                                <span><i class="fas fa-route"></i> ${t.transport || '—'}</span>
+                                <span class="badge-mode ${modeCls}">${modeLabel}</span>
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button class="btn-danger" data-id="${t.id}"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+            document.getElementById('listCount').textContent = `${trips.length} 条`;
+
+            // 绑定删除事件
+            container.querySelectorAll('.btn-danger').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = parseInt(btn.dataset.id);
+                    deleteTrip(id);
+                });
+            });
+        }
+
+        // ---------- 数据操作 ----------
+        function addTripFromForm() {
+            const city = document.getElementById('fCity').value.trim();
+            const country = document.getElementById('fCountry').value.trim();
+            const lat = parseFloat(document.getElementById('fLat').value);
+            const lng = parseFloat(document.getElementById('fLng').value);
+            const year = parseInt(document.getElementById('fYear').value);
+            const month = parseInt(document.getElementById('fMonth').value) || 1;
+            const mode = document.getElementById('fMode').value;
+            const transport = document.getElementById('fTransport').value.trim() || '其他';
+            const note = document.getElementById('fNote').value.trim();
+
+            if (!city || isNaN(lat) || isNaN(lng) || isNaN(year)) {
+                alert('请至少填写: 城市, 纬度, 经度, 年份');
+                return;
+            }
+
+            const newId = trips.length ? Math.max(...trips.map(t => t.id)) + 1 : 1;
+            const newTrip = {
+                id: newId,
+                city,
+                country: country || '未知',
+                lat,
+                lng,
+                year,
+                month,
+                mode,
+                transport,
+                note
+            };
+            trips.push(newTrip);
+            renderAllMarkers();
+            // 清空表单
+            document.getElementById('fCity').value = '';
+            document.getElementById('fCountry').value = '';
+            document.getElementById('fLat').value = '';
+            document.getElementById('fLng').value = '';
+            document.getElementById('fYear').value = '';
+            document.getElementById('fMonth').value = '';
+            document.getElementById('fTransport').value = '';
+            document.getElementById('fNote').value = '';
+
+            // 如果抽屉打开，保持筛选
+            if (drawerOpen && currentYear === null) {
+                const years = [...new Set(trips.map(d => d.year))].sort();
+                currentYear = years[years.length - 1] || null;
+                filterByYear(currentYear);
+            } else {
+                filterByYear(currentYear);
+            }
+        }
+
+        function deleteTrip(id) {
+            if (!confirm('确定要删除这条足迹吗？')) return;
+            trips = trips.filter(t => t.id !== id);
+            // 同时清理 tripGroups 中关联的连线
+            tripGroups = tripGroups.filter(g => !g.ids.includes(id));
+            renderAllMarkers();
+            if (drawerOpen && currentYear === null) {
+                const years = [...new Set(trips.map(d => d.year))].sort();
+                currentYear = years[years.length - 1] || null;
+                filterByYear(currentYear);
+            } else {
+                filterByYear(currentYear);
+            }
+        }
+
+        // ---------- 初始化 ----------
+        renderAllMarkers();
         filterByYear(null);
-      }
-    });
 
-    // 数据管理入口点击提示
-    document.getElementById('dataEntry').addEventListener('click', () => {
-      alert(
-        '📝 数据管理\n\n' +
-        '在浏览器控制台 (F12) 中使用:\n\n' +
-        '1. addTrip({ city, country, lat, lng, year, month, mode, transport, note })\n' +
-        '   例: addTrip({ city: "北京", lat: 39.9, lng: 116.4, year: 2025, mode: "travel" })\n\n' +
-        '2. addSampleTrip()  添加两个示例足迹\n\n' +
-        '3. 查看所有数据: trips'
-      );
-    });
+        // ---------- 事件绑定 ----------
+        // 侧栏开关
+        document.getElementById('openPanelBtn').addEventListener('click', () => {
+            document.getElementById('dataPanel').classList.add('open');
+        });
+        document.getElementById('closePanelBtn').addEventListener('click', () => {
+            document.getElementById('dataPanel').classList.remove('open');
+        });
 
-    // ---------- 动画循环 ----------
-    function animate() {
-      requestAnimationFrame(animate);
-      controls.update();
-      clouds.rotation.y += 0.00025;
-      stars.rotation.y += 0.00003;
-      renderer.render(scene, camera);
-      labelRenderer.render(scene, camera);
-    }
-    animate();
+        // 添加按钮
+        document.getElementById('addTripBtn').addEventListener('click', addTripFromForm);
+        // 回车快捷
+        document.querySelectorAll('#dataPanel input').forEach(inp => {
+            inp.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') addTripFromForm();
+            });
+        });
 
-    // ---------- 窗口自适应 ----------
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      labelRenderer.setSize(window.innerWidth, window.innerHeight);
-    });
+        // 底部控制
+        document.getElementById('modeToggle').addEventListener('click', toggleMode);
+        document.getElementById('resetView').addEventListener('click', () => {
+            camera.position.set(0, 1.2, 7.5);
+            controls.target.set(0, 0, 0);
+            controls.update();
+        });
 
-    // 隐藏加载遮罩
-    setTimeout(() => {
-      document.getElementById('loading').classList.add('hidden');
-    }, 1200);
+        document.getElementById('prevYear').addEventListener('click', () => {
+            const years = [...new Set(trips.map(d => d.year))].sort();
+            if (currentYear === null) {
+                currentYear = years[0] || null;
+            } else {
+                const idx = years.indexOf(currentYear);
+                if (idx > 0) currentYear = years[idx - 1];
+                else currentYear = null;
+            }
+            filterByYear(currentYear);
+        });
 
-    // 初始化统计
-    updateStats();
-    console.log('🌍 旅行地球仪已启动！ 使用 addTrip() 添加足迹，addSampleTrip() 添加示例。');
-  </script>
+        document.getElementById('nextYear').addEventListener('click', () => {
+            const years = [...new Set(trips.map(d => d.year))].sort();
+            if (currentYear === null) {
+                currentYear = years[years.length - 1] || null;
+            } else {
+                const idx = years.indexOf(currentYear);
+                if (idx < years.length - 1) currentYear = years[idx + 1];
+                else currentYear = null;
+            }
+            filterByYear(currentYear);
+        });
+
+        document.getElementById('drawerToggle').addEventListener('click', () => {
+            drawerOpen = !drawerOpen;
+            document.body.classList.toggle('drawer-open');
+            if (drawerOpen) {
+                if (currentYear === null) {
+                    const years = [...new Set(trips.map(d => d.year))].sort();
+                    currentYear = years[years.length - 1] || null;
+                }
+                filterByYear(currentYear);
+            } else {
+                currentYear = null;
+                filterByYear(null);
+            }
+        });
+
+        // ---------- 动画循环 ----------
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            clouds.rotation.y += 0.00025;
+            stars.rotation.y += 0.00003;
+            renderer.render(scene, camera);
+            labelRenderer.render(scene, camera);
+        }
+        animate();
+
+        // ---------- 自适应 ----------
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            labelRenderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // 隐藏加载遮罩
+        setTimeout(() => {
+            document.getElementById('loading').classList.add('hidden');
+        }, 1200);
+
+        updateStats();
+        console.log('🌍 旅行地球仪已启动！ 使用右侧面板管理足迹。');
+    </script>
 </body>
 </html>
