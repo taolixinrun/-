@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>旅行地球仪 · 足迹档案</title>
+  <!-- 字体 & 图标库 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Segoe UI', 'PingFang SC', Roboto, sans-serif;
+      background: #0a0f1a;
+      color: #f0f4fa;
+    }
+    #info {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 10;
+      background: rgba(10, 15, 26, 0.7);
+      backdrop-filter: blur(8px);
+      padding: 16px 24px;
+      border-radius: 40px;
+      border-left: 4px solid #4fc3f7;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+      pointer-events: none;
+    }
+    #info h1 {
+      margin: 0;
+      font-size: 1.6rem;
+      font-weight: 400;
+      letter-spacing: 2px;
+    }
+    #info h1 i {
+      color: #4fc3f7;
+      margin-right: 12px;
+    }
+    #info small {
+      opacity: 0.7;
+      margin-left: 16px;
+      font-size: 0.9rem;
+    }
+    #controls {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 18px;
+      background: rgba(10, 15, 26, 0.6);
+      backdrop-filter: blur(12px);
+      padding: 14px 28px;
+      border-radius: 60px;
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.7);
+      justify-content: center;
+      pointer-events: auto;
+    }
+    .ctrl-group {
+      display: flex;
+      align-items: center;
+      gap: 8px 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .ctrl-btn {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #d0d9e8;
+      padding: 6px 16px;
+      border-radius: 40px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: 0.25s;
+      backdrop-filter: blur(4px);
+      background: rgba(20, 30, 50, 0.3);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: 0.5px;
+    }
+    .ctrl-btn i {
+      font-size: 0.9rem;
+    }
+    .ctrl-btn:hover {
+      background: #4fc3f7;
+      color: #0a0f1a;
+      border-color: #4fc3f7;
+      transform: scale(1.03);
+      box-shadow: 0 0 20px rgba(79, 195, 247, 0.3);
+    }
+    .ctrl-btn.active {
+      background: #4fc3f7;
+      color: #0a0f1a;
+      border-color: #4fc3f7;
+      font-weight: 500;
+    }
+    .year-badge {
+      background: #1e2a3a;
+      padding: 4px 14px;
+      border-radius: 40px;
+      font-size: 0.9rem;
+      border: 1px solid #3a4a5e;
+      color: #b0c7e0;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #yearDisplay {
+      font-weight: 600;
+      color: #fff;
+      min-width: 50px;
+      display: inline-block;
+      text-align: center;
+    }
+    #drawerToggle {
+      background: #2a3a50;
+      border-color: #4a6a8a;
+    }
+    #drawerToggle i {
+      transition: 0.3s;
+    }
+    .drawer-open #drawerToggle i {
+      transform: rotate(180deg);
+    }
+    #modeIndicator {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 10;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(6px);
+      padding: 8px 18px;
+      border-radius: 30px;
+      font-size: 0.9rem;
+      border: 1px solid rgba(255,255,255,0.1);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .mode-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .mode-dot.work { background: #ffb74d; box-shadow: 0 0 12px #ffb74d88; }
+    .mode-dot.travel { background: #81c784; box-shadow: 0 0 12px #81c78488; }
+    #stats {
+      position: absolute;
+      bottom: 100px;
+      right: 20px;
+      z-index: 10;
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(6px);
+      padding: 10px 16px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      border: 1px solid rgba(255,255,255,0.05);
+      text-align: right;
+      line-height: 1.6;
+      pointer-events: none;
+    }
+    @media (max-width: 680px) {
+      #controls { flex-direction: column; gap: 8px; width: 90%; padding: 12px 16px; border-radius: 30px; bottom: 20px; }
+      .ctrl-group { gap: 6px; }
+      #info { top: 10px; left: 10px; padding: 8px 14px; }
+      #info h1 { font-size: 1.1rem; }
+      #modeIndicator { top: 10px; right: 10px; padding: 4px 12px; font-size: 0.7rem; }
+      #stats { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div id="info">
+    <h1><i class="fas fa-globe-asia"></i> 足迹地球 <small>· 点击城市查看详情</small></h1>
+  </div>
+  <div id="modeIndicator">
+    <span class="mode-dot travel" id="modeDot"></span>
+    <span id="modeLabel">旅行模式</span>
+  </div>
+  <div id="stats">
+    <div>🌍 总足迹 <span id="totalCount">0</span></div>
+    <div>📌 当前显示 <span id="shownCount">0</span></div>
+  </div>
+
+  <div id="controls">
+    <div class="ctrl-group">
+      <button class="ctrl-btn active" id="modeToggle"><i class="fas fa-briefcase"></i> 工作/旅行</button>
+      <button class="ctrl-btn" id="resetView"><i class="fas fa-home"></i> 复位</button>
+    </div>
+    <div class="ctrl-group">
+      <button class="ctrl-btn" id="prevYear"><i class="fas fa-chevron-left"></i></button>
+      <span class="year-badge"><i class="far fa-calendar-alt"></i> <span id="yearDisplay">全部</span></span>
+      <button class="ctrl-btn" id="nextYear"><i class="fas fa-chevron-right"></i></button>
+      <button class="ctrl-btn" id="drawerToggle"><i class="fas fa-archive"></i> 抽屉</button>
+    </div>
+  </div>
+
+  <!-- 引入 three.js 核心库与扩展 -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+    // ---------- 数据 ----------
+    // 模拟旅行足迹数据： 包含工作(work) 和 旅行(travel) 两种模式
+    const travelData = [
+      { id: 1, city: '巴黎', country: '法国', lat: 48.8566, lng: 2.3522, year: 2023, month: 5, mode: 'travel', transport: '飞机', note: '埃菲尔铁塔, 卢浮宫', color: '#81c784' },
+      { id: 2, city: '东京', country: '日本', lat: 35.6895, lng: 139.6917, year: 2024, month: 3, mode: 'travel', transport: '飞机', note: '樱花季, 涩谷', color: '#81c784' },
+      { id: 3, city: '纽约', country: '美国', lat: 40.7128, lng: -74.0060, year: 2023, month: 9, mode: 'work', transport: '飞机', note: '商务会议, 曼哈顿', color: '#ffb74d' },
+      { id: 4, city: '伦敦', country: '英国', lat: 51.5074, lng: -0.1278, year: 2022, month: 7, mode: 'travel', transport: '高铁', note: '大本钟, 伦敦眼', color: '#81c784' },
+      { id: 5, city: '悉尼', country: '澳大利亚', lat: -33.8688, lng: 151.2093, year: 2024, month: 1, mode: 'travel', transport: '飞机', note: '歌剧院, 海滩', color: '#81c784' },
+      { id: 6, city: '上海', country: '中国', lat: 31.2304, lng: 121.4737, year: 2023, month: 11, mode: 'work', transport: '高铁', note: '进博会, 外滩', color: '#ffb74d' },
+      { id: 7, city: '开普敦', country: '南非', lat: -33.9249, lng: 18.4241, year: 2025, month: 2, mode: 'travel', transport: '飞机', note: '桌山, 好望角', color: '#81c784' },
+      { id: 8, city: '莫斯科', country: '俄罗斯', lat: 55.7558, lng: 37.6173, year: 2022, month: 12, mode: 'work', transport: '飞机', note: '红场, 克里姆林宫', color: '#ffb74d' },
+      { id: 9, city: '新加坡', country: '新加坡', lat: 1.3521, lng: 103.8198, year: 2023, month: 8, mode: 'travel', transport: '飞机', note: '鱼尾狮, 滨海湾', color: '#81c784' },
+      { id: 10, city: '罗马', country: '意大利', lat: 41.9028, lng: 12.4964, year: 2024, month: 6, mode: 'travel', transport: '高铁', note: '斗兽场, 梵蒂冈', color: '#81c784' },
+    ];
+
+    // 额外增加同一旅途交通示例 (同一旅途不同城市间交通方式) 用连线表示
+    // 我们通过额外标记 同一年同一模式且相近时间视为同一旅途，绘制贝塞尔弧线
+    // 为演示，手动定义一些“旅途组”
+    const tripGroups = [
+      { ids: [1, 4], transport: '高铁' },  // 巴黎-伦敦
+      { ids: [2, 9], transport: '飞机' },  // 东京-新加坡
+      { ids: [3, 6], transport: '飞机' },  // 纽约-上海 (工作)
+    ];
+
+    // ---------- 初始化场景 ----------
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a0f1a);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 2, 8);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    document.body.appendChild(renderer.domElement);
+
+    const labelRenderer = new CSS2DRenderer();
+    labelRenderer.setSize(window.innerWidth, window.innerHeight);
+    labelRenderer.domElement.style.position = 'absolute';
+    labelRenderer.domElement.style.top = '0px';
+    labelRenderer.domElement.style.left = '0px';
+    labelRenderer.domElement.style.pointerEvents = 'none';  // 让点击穿透
+    document.body.appendChild(labelRenderer.domElement);
+
+    // 控制
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.rotateSpeed = 0.8;
+    controls.autoRotate = false;
+    controls.minDistance = 2.5;
+    controls.maxDistance = 15;
+
+    // ---------- 灯光 ----------
+    const ambient = new THREE.AmbientLight(0x404060, 0.6);
+    scene.add(ambient);
+    const mainLight = new THREE.DirectionalLight(0xffeedd, 1.2);
+    mainLight.position.set(5, 8, 5);
+    mainLight.castShadow = true;
+    scene.add(mainLight);
+    const backLight = new THREE.DirectionalLight(0x4488ff, 0.6);
+    backLight.position.set(-5, -2, -8);
+    scene.add(backLight);
+    const fillLight = new THREE.DirectionalLight(0x88aaff, 0.5);
+    fillLight.position.set(0, -3, 6);
+    scene.add(fillLight);
+    
+    // 星星背景
+    const starsGeometry = new THREE.BufferGeometry();
+    const starsCount = 4000;
+    const starsPos = new Float32Array(starsCount * 3);
+    for (let i = 0; i < starsCount * 3; i += 3) {
+      const r = 60 + Math.random() * 40;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos((Math.random() * 2) - 1);
+      starsPos[i] = r * Math.sin(phi) * Math.cos(theta);
+      starsPos[i+1] = r * Math.sin(phi) * Math.sin(theta);
+      starsPos[i+2] = r * Math.cos(phi);
+    }
+    starsGeometry.setAttribute('position', new THREE.BufferAttribute(starsPos, 3));
+    const starsMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.15, transparent: true });
+    const stars = new THREE.Points(starsGeometry, starsMaterial);
+    scene.add(stars);
+
+    // ---------- 地球 ----------
+    const earthGroup = new THREE.Group();
+    scene.add(earthGroup);
+
+    const earthRadius = 1.8;
+    const earthGeo = new THREE.SphereGeometry(earthRadius, 64, 64);
+    const textureLoader = new THREE.TextureLoader();
+    // 高分辨率地球纹理 (带大气光晕)
+    const earthMap = textureLoader.load('https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg');
+    const earthMat = new THREE.MeshStandardMaterial({
+      map: earthMap,
+      roughness: 0.3,
+      metalness: 0.1,
+      emissive: new THREE.Color(0x112244),
+      emissiveIntensity: 0.1
+    });
+    const earth = new THREE.Mesh(earthGeo, earthMat);
+    earth.castShadow = true;
+    earth.receiveShadow = true;
+    earthGroup.add(earth);
+
+    // 大气层辉光
+    const glowGeo = new THREE.SphereGeometry(earthRadius * 1.015, 64, 64);
+    const glowMat = new THREE.MeshPhongMaterial({
+      color: 0x4fc3f7,
+      transparent: true,
+      opacity: 0.12,
+      side: THREE.BackSide
+    });
+    const glow = new THREE.Mesh(glowGeo, glowMat);
+    earthGroup.add(glow);
+
+    // 云层 (半透明)
+    const cloudGeo = new THREE.SphereGeometry(earthRadius * 1.008, 64, 64);
+    const cloudMap = textureLoader.load('https://threejs.org/examples/textures/planets/earth_clouds_1024.png');
+    const cloudMat = new THREE.MeshPhongMaterial({
+      map: cloudMap,
+      transparent: true,
+      opacity: 0.2,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide
+    });
+    const clouds = new THREE.Mesh(cloudGeo, cloudMat);
+    earthGroup.add(clouds);
+
+    // ---------- 标记与连线 ----------
+    const markers = [];
+    const markerGroup = new THREE.Group();
+    earthGroup.add(markerGroup);
+
+    // 存储所有标记对象用于筛选
+    let allMarkers = [];
+
+    // 工具: 经纬度转三维坐标
+    function latLngToPosition(lat, lng, radius = earthRadius * 1.02) {
+      const phi = (90 - lat) * Math.PI / 180;
+      const theta = lng * Math.PI / 180;
+      return new THREE.Vector3(
+        radius * Math.sin(phi) * Math.cos(theta),
+        radius * Math.cos(phi),
+        radius * Math.sin(phi) * Math.sin(theta)
+      );
+    }
+
+    // 创建标记 (带CSS2D标签)
+    function createMarker(data, show = true) {
+      const pos = latLngToPosition(data.lat, data.lng);
+      const color = data.mode === 'work' ? '#ffb74d' : '#81c784';
+      
+      // 3D 标记 (小光柱)
+      const group = new THREE.Group();
+      group.position.copy(pos);
+
+      // 小球
+      const sphereGeo = new THREE.SphereGeometry(0.06, 12, 12);
+      const sphereMat = new THREE.MeshStandardMaterial({ 
+        color: color, 
+        emissive: color, 
+        emissiveIntensity: 0.6,
+        roughness: 0.2,
+        metalness: 0.1
+      });
+      const sphere = new THREE.Mesh(sphereGeo, sphereMat);
+      sphere.castShadow = true;
+      group.add(sphere);
+
+      // 光晕 (环)
+      const ringGeo = new THREE.RingGeometry(0.08, 0.12, 24);
+      const ringMat = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.5, side: THREE.DoubleSide });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.lookAt(new THREE.Vector3(0,0,0));
+      group.add(ring);
+      
+      // 细小光柱
+      const pillarGeo = new THREE.CylinderGeometry(0.005, 0.02, 0.2);
+      const pillarMat = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.3 });
+      const pillar = new THREE.Mesh(pillarGeo, pillarMat);
+      pillar.position.set(0, 0.1, 0);
+      group.add(pillar);
+
+      // CSS2D 标签 (城市名 + 年份)
+      const labelDiv = document.createElement('div');
+      labelDiv.textContent = `${data.city} ${data.year}`;
+      labelDiv.style.color = '#fff';
+      labelDiv.style.fontSize = '12px';
+      labelDiv.style.fontWeight = '400';
+      labelDiv.style.textShadow = '0 0 12px rgba(0,0,0,0.9), 0 0 4px #000';
+      labelDiv.style.background = 'rgba(0,0,0,0.5)';
+      labelDiv.style.padding = '2px 10px';
+      labelDiv.style.borderRadius = '20px';
+      labelDiv.style.border = '1px solid ' + color;
+      labelDiv.style.backdropFilter = 'blur(4px)';
+      labelDiv.style.pointerEvents = 'auto';
+      labelDiv.style.cursor = 'pointer';
+      labelDiv.dataset.id = data.id;
+      // 点击弹出详情 (简易)
+      labelDiv.addEventListener('click', (e) => {
+        e.stopPropagation();
+        alert(`📍 ${data.city}, ${data.country}\n📅 ${data.year}.${data.month}\n🚗 ${data.transport}\n📝 ${data.note}\n🏷️ ${data.mode === 'work' ? '工作出差' : '旅行'}`);
+      });
+
+      const label = new CSS2DObject(labelDiv);
+      label.position.set(0, 0.25, 0);
+      group.add(label);
+
+      // 存储数据
+      group.userData = { ...data, visible: true };
+      markerGroup.add(group);
+      
+      // 连线处理 (存储用于后续)
+      return group;
+    }
+
+    // 创建弧线 (同一旅途交通连线)
+    function createArc(data1, data2, transport) {
+      const p1 = latLngToPosition(data1.lat, data1.lng, earthRadius * 1.02);
+      const p2 = latLngToPosition(data2.lat, data2.lng, earthRadius * 1.02);
+      const mid = new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5);
+      const dist = p1.distanceTo(p2);
+      mid.normalize().multiplyScalar(earthRadius * 1.1 + dist * 0.25);
+      
+      const curve = new THREE.QuadraticBezierCurve3(p1, mid, p2);
+      const points = curve.getPoints(32);
+      const geometry = new THREE.BufferGeometry().setFromPoints(points);
+      const color = transport === '飞机' ? '#4fc3f7' : (transport === '高铁' ? '#ffb74d' : '#a8d8ea');
+      const material = new THREE.LineBasicMaterial({ color: color, transparent: true, opacity: 0.35 });
+      const curveLine = new THREE.Line(geometry, material);
+      curveLine.userData = { type: 'arc', visible: true };
+      markerGroup.add(curveLine);
+      return curveLine;
+    }
+
+    // 初始化所有标记
+    function initMarkers() {
+      // 清除旧标记
+      while(markerGroup.children.length > 0) {
+        markerGroup.remove(markerGroup.children[0]);
+      }
+      allMarkers = [];
+
+      // 添加标记
+      travelData.forEach(d => {
+        const marker = createMarker(d);
+        allMarkers.push(marker);
+      });
+
+      // 添加旅途连线 (基于tripGroups)
+      tripGroups.forEach(group => {
+        const d1 = travelData.find(d => d.id === group.ids[0]);
+        const d2 = travelData.find(d => d.id === group.ids[1]);
+        if (d1 && d2) {
+          createArc(d1, d2, group.transport);
+        }
+      });
+
+      // 更新统计
+      updateStats();
+    }
+
+    // 抽屉 / 年份筛选
+    let currentYear = null; // null 表示全部
+    let drawerOpen = false; // 是否只显示当年
+
+    function filterByYear(year) {
+      currentYear = year;
+      const yearText = year ? year : '全部';
+      document.getElementById('yearDisplay').textContent = yearText;
+      
+      let visibleCount = 0;
+      markerGroup.children.forEach(child => {
+        if (child.userData && child.userData.year !== undefined) {
+          // 标记
+          const show = (currentYear === null || child.userData.year === currentYear);
+          child.visible = show;
+          if (show) visibleCount++;
+        } else {
+          // 弧线: 根据关联标记可见性
+          // 简单处理: 默认显示
+          child.visible = true;
+        }
+      });
+      // 更新统计
+      document.getElementById('shownCount').textContent = visibleCount;
+    }
+
+    // 模式切换
+    let currentMode = 'travel'; // 'travel' or 'work'
+    function toggleMode() {
+      currentMode = (currentMode === 'travel' ? 'work' : 'travel');
+      document.getElementById('modeLabel').textContent = currentMode === 'travel' ? '旅行模式' : '工作模式';
+      document.getElementById('modeDot').className = 'mode-dot ' + (currentMode === 'travel' ? 'travel' : 'work');
+      
+      // 筛选标记
+      markerGroup.children.forEach(child => {
+        if (child.userData && child.userData.mode) {
+          const show = (child.userData.mode === currentMode);
+          child.visible = show;
+        }
+      });
+      // 重新应用年份筛选
+      if (currentYear !== null) {
+        filterByYear(currentYear);
+      }
+      updateStats();
+    }
+
+    function updateStats() {
+      let total = travelData.length;
+      document.getElementById('totalCount').textContent = total;
+      let shown = 0;
+      markerGroup.children.forEach(c => {
+        if (c.visible && c.userData && c.userData.year !== undefined) shown++;
+      });
+      document.getElementById('shownCount').textContent = shown;
+    }
+
+    // 重置视角
+    function resetView() {
+      camera.position.set(0, 2, 8);
+      controls.target.set(0, 0, 0);
+      controls.update();
+    }
+
+    // UI 事件绑定
+    document.getElementById('modeToggle').addEventListener('click', toggleMode);
+    document.getElementById('resetView').addEventListener('click', resetView);
+    document.getElementById('prevYear').addEventListener('click', () => {
+      const years = [...new Set(travelData.map(d => d.year))].sort();
+      if (currentYear === null) {
+        currentYear = years[0] || null;
+      } else {
+        const idx = years.indexOf(currentYear);
+        if (idx > 0) currentYear = years[idx-1];
+        else currentYear = null;
+      }
+      filterByYear(currentYear);
+    });
+    document.getElementById('nextYear').addEventListener('click', () => {
+      const years = [...new Set(travelData.map(d => d.year))].sort();
+      if (currentYear === null) {
+        currentYear = years[years.length-1] || null;
+      } else {
+        const idx = years.indexOf(currentYear);
+        if (idx < years.length-1) currentYear = years[idx+1];
+        else currentYear = null;
+      }
+      filterByYear(currentYear);
+    });
+    document.getElementById('drawerToggle').addEventListener('click', () => {
+      drawerOpen = !drawerOpen;
+      document.body.classList.toggle('drawer-open');
+      if (drawerOpen) {
+        // 抽屉模式：只显示当前年份 (如果当前年份为null则显示全部)
+        if (currentYear === null) {
+          const years = [...new Set(travelData.map(d => d.year))].sort();
+          currentYear = years[years.length-1] || null;
+        }
+        filterByYear(currentYear);
+      } else {
+        // 退出抽屉，显示全部
+        currentYear = null;
+        filterByYear(null);
+      }
+    });
+
+    // 初始化
+    initMarkers();
+    filterByYear(null); // 全部显示
+
+    // 动画循环
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      // 云层缓慢旋转
+      clouds.rotation.y += 0.00015;
+      stars.rotation.y += 0.00003;
+      
+      renderer.render(scene, camera);
+      labelRenderer.render(scene, camera);
+    }
+    animate();
+
+    // resize
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      labelRenderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // 初始化统计
+    updateStats();
+
+    console.log('🌍 旅行地球仪已启动！');
+  </script>
+</body>
+</html>
